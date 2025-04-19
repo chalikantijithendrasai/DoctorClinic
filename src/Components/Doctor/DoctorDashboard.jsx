@@ -213,6 +213,10 @@ const navigate = useNavigate()
         else if(item.label?.includes("View Appointments")) {
             navigate(`/viewappointment/${doctors.doctorId}`);
           }
+          else if(item.label?.includes("Edit Doctor")) {
+            navigate(`/profile/doctor/${doctors.doctorId}`);
+          }
+          
       }}
     >
       <Paper sx={{ p: 2, textAlign: "center", cursor: "pointer" }}>

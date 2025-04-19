@@ -245,6 +245,22 @@ const Header = () => {
       navigate(`/profile/doctor/${userID}`);
     }
   };
+
+  const handleAppointment = async ()=>{
+    const userData = JSON.parse(localStorage.getItem("userData"));
+  
+    const isPatient = userData.registeredAs?.toLowerCase() === "patient";
+    const userID = isPatient
+      ? userData.userResponse?.patientId
+      : userData.userResponse?.doctorId;
+  
+    if (isPatient) {
+      navigate(`/patientAppointments`);
+    } else {
+      navigate(`/viewappointment/${userID}`);
+    }
+  };
+
   
 
   const startTimer = (seconds) => {
@@ -658,7 +674,7 @@ const Header = () => {
       >
         <MenuItem onClick={handleProfile}>My Profile</MenuItem>
         <MenuItem onClick={handleLogout}>Update Consultation Fee</MenuItem>
-        <MenuItem onClick={handleLogout}>Appointments</MenuItem>
+        <MenuItem onClick={handleAppointment}>Appointments</MenuItem>
         <MenuItem onClick={handleLogout}>Add Dependents</MenuItem>
         <MenuItem onClick={handleLogout}>Pharmacy Orders</MenuItem>
         <MenuItem onClick={handleLogout}>Diagnostics Orders</MenuItem>

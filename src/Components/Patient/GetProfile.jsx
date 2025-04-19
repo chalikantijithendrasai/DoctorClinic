@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  CircularProgress,
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Divider
+} from '@mui/material';
 
 const PatientProfile = () => {
   const { id } = useParams();
@@ -197,22 +212,21 @@ const PatientProfile = () => {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <CircularProgress />
+    </Box>
   );
   
   if (error) return (
-    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md mx-auto mt-8" role="alert">
-      <strong className="font-bold">Error: </strong>
-      <span className="block sm:inline">{error}</span>
-    </div>
+    <Box p={2}>
+      <Alert severity="error">{error}</Alert>
+    </Box>
   );
   
   if (!profile) return (
-    <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative max-w-md mx-auto mt-8" role="alert">
-      No patient profile data found
-    </div>
+    <Box p={2}>
+      <Alert severity="warning">No patient profile data found</Alert>
+    </Box>
   );
 
   // Helper function to display dates in a readable format
@@ -227,576 +241,574 @@ const PatientProfile = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Profile Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-6 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">Patient Profile</h1>
-              <p className="mt-1">{profile.patientName}</p>
-            </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`px-4 py-2 rounded font-medium ${isEditing ? 'bg-white text-blue-600 hover:bg-gray-100' : 'bg-blue-600 text-white hover:bg-blue-700'} transition-colors`}
-            >
-              {isEditing ? 'Cancel Editing' : 'Edit Profile'}
-            </button>
-          </div>
-        </div>
+    <Box p={3}>
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Box>
+            <Typography variant="h5" component="h1" gutterBottom>
+              Patient Profile
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              {profile.patientName}
+            </Typography>
+          </Box>
+          <Button
+            variant={isEditing ? "outlined" : "contained"}
+            color="primary"
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            {isEditing ? 'Cancel Editing' : 'Edit Profile'}
+          </Button>
+        </Box>
 
-        {/* Profile Content */}
-        <div className="p-6">
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
-              {/* Personal Information Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Personal Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Patient Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="patientName"
-                        value={formData.patientName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.patientName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.email}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date of Birth
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={formData.dateOfBirth}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{formatDisplayDate(profile.dateOfBirth)}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Primary Phone
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        name="primaryPhone"
-                        value={formData.primaryPhone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.primaryPhone}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Secondary Phone
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        name="secondaryPhone"
-                        value={formData.secondaryPhone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.secondaryPhone || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.gender || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Blood Group
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="bloodGroup"
-                        value={formData.bloodGroup}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select Blood Group</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.bloodGroup || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Marital Status
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="maritalStatus"
-                        value={formData.maritalStatus}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select Marital Status</option>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Divorced">Divorced</option>
-                        <option value="Widowed">Widowed</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.maritalStatus || '-'}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Personal Information */}
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Personal Information
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Grid container spacing={3}>
+                {/* Name and Email Row */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Patient Name"
+                    name="patientName"
+                    value={formData.patientName}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                    InputProps={{
+                      sx: {
+                        color: 'black',
+                        '&::placeholder': {
+                          color: 'black',
+                          opacity: 1,
+                        },
+                      },
+                    }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        color: 'black',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'text.secondary',
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        color: 'text.primary',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'text.secondary',
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
 
-              {/* Address Information Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Address Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address Line 1
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="addressLine1"
-                        value={formData.addressLine1}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.addressLine1 || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address Line 2
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="addressLine2"
-                        value={formData.addressLine2}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.addressLine2 || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City/Town
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="cityOrTown"
-                        value={formData.cityOrTown}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.cityOrTown || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      District
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="district"
-                        value={formData.district}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.district || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      State
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.state || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.country || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Pincode
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.pincode || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Landmark
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="landmark"
-                        value={formData.landmark}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.landmark || '-'}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                {/* Date of Birth and Phone Numbers Row */}
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Date of Birth"
+                    name="dateOfBirth"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiInputBase-input': {
+                        color: 'text.primary',
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'text.secondary',
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Primary Phone"
+                    name="primaryPhone"
+                    value={formData.primaryPhone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Secondary Phone"
+                    name="secondaryPhone"
+                    value={formData.secondaryPhone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
 
-              {/* Emergency & Insurance Information Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Emergency & Insurance Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Emergency Contact
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        name="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.emergencyContact || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Emergency Contact Relation
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="emergencyContactRelation"
-                        value={formData.emergencyContactRelation}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.emergencyContactRelation || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Policy Issued By
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="insurancePolicyIssuedBy"
-                        value={formData.insurancePolicyIssuedBy}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.insurancePolicyIssuedBy || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Policy No
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="insurancePolicyNo"
-                        value={formData.insurancePolicyNo}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.insurancePolicyNo || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Insurance Validity
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="date"
-                        name="insuranceValidity"
-                        value={formData.insuranceValidity}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{formatDisplayDate(profile.insuranceValidity)}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                {/* Gender, Blood Group, and Marital Status Row */}
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth disabled={!isEditing}>
+                    <InputLabel sx={{ color: 'text.secondary' }}>Gender</InputLabel>
+                    <Select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      label="Gender"
+                      required
+                      sx={{
+                        '& .MuiSelect-select': {
+                          color: 'black',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Select Gender</MenuItem>
+                      <MenuItem value="male">Male</MenuItem>
+                      <MenuItem value="female">Female</MenuItem>
+                      <MenuItem value="other">Other</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth disabled={!isEditing}>
+                    <InputLabel sx={{ color: 'text.secondary' }}>Blood Group</InputLabel>
+                    <Select
+                      name="bloodGroup"
+                      value={formData.bloodGroup}
+                      onChange={handleInputChange}
+                      label="Blood Group"
+                      sx={{
+                        '& .MuiSelect-select': {
+                          color: 'black',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Select Blood Group</MenuItem>
+                      <MenuItem value="A+">A+</MenuItem>
+                      <MenuItem value="A-">A-</MenuItem>
+                      <MenuItem value="B+">B+</MenuItem>
+                      <MenuItem value="B-">B-</MenuItem>
+                      <MenuItem value="AB+">AB+</MenuItem>
+                      <MenuItem value="AB-">AB-</MenuItem>
+                      <MenuItem value="O+">O+</MenuItem>
+                      <MenuItem value="O-">O-</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth disabled={!isEditing}>
+                    <InputLabel sx={{ color: 'text.secondary' }}>Marital Status</InputLabel>
+                    <Select
+                      name="maritalStatus"
+                      value={formData.maritalStatus}
+                      onChange={handleInputChange}
+                      label="Marital Status"
+                      sx={{
+                        '& .MuiSelect-select': {
+                          color: 'black',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Select Marital Status</MenuItem>
+                      <MenuItem value="Single">Single</MenuItem>
+                      <MenuItem value="Married">Married</MenuItem>
+                      <MenuItem value="Divorced">Divorced</MenuItem>
+                      <MenuItem value="Widowed">Widowed</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Paper>
 
-              {/* Representative & Documents Information Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Representative & Documents
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Representative
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="representative"
-                        value={formData.representative}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.representative || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Representative Type
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="representativeType"
-                        value={formData.representativeType}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.representativeType || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ID Proof Type
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="idProof"
-                        value={formData.idProof}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select ID Proof</option>
-                        <option value="Passport">Passport</option>
-                        <option value="Driver License">Driver License</option>
-                        <option value="Aadhar Card">Aadhar Card</option>
-                        <option value="PAN Card">PAN Card</option>
-                        <option value="Voter ID">Voter ID</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.idProof || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ID Proof Location
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="idProofLoc"
-                        value={formData.idProofLoc}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.idProofLoc || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address Proof Type
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="addressProof"
-                        value={formData.addressProof}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select Address Proof</option>
-                        <option value="Utility Bill">Utility Bill</option>
-                        <option value="Bank Statement">Bank Statement</option>
-                        <option value="Rental Agreement">Rental Agreement</option>
-                        <option value="Aadhar Card">Aadhar Card</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.addressProof || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address Proof Location
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="addressProofLoc"
-                        value={formData.addressProofLoc}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.addressProofLoc || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Profile Picture Location
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="profilePicLoc"
-                        value={formData.profilePicLoc}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.profilePicLoc || '-'}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Address Information */}
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Address Information
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Grid container spacing={3}>
+                {/* Address Lines Row */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 1"
+                    name="addressLine1"
+                    value={formData.addressLine1}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Line 2"
+                    name="addressLine2"
+                    value={formData.addressLine2}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* City, District, State Row */}
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="City/Town"
+                    name="cityOrTown"
+                    value={formData.cityOrTown}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="District"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="State"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* Country, Pincode, Landmark Row */}
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Pincode"
+                    name="pincode"
+                    value={formData.pincode}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Landmark"
+                    name="landmark"
+                    value={formData.landmark}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Emergency & Insurance Information */}
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Emergency & Insurance Information
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Grid container spacing={3}>
+                {/* Emergency Contact Row */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Emergency Contact"
+                    name="emergencyContact"
+                    value={formData.emergencyContact}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Emergency Contact Relation"
+                    name="emergencyContactRelation"
+                    value={formData.emergencyContactRelation}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* Insurance Information Row */}
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Insurance Policy Issued By"
+                    name="insurancePolicyIssuedBy"
+                    value={formData.insurancePolicyIssuedBy}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Insurance Policy No"
+                    name="insurancePolicyNo"
+                    value={formData.insurancePolicyNo}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Insurance Validity"
+                    name="insuranceValidity"
+                    type="date"
+                    value={formData.insuranceValidity}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Representative & Documents Information */}
+            <Paper elevation={1} sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Representative & Documents
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <Grid container spacing={3}>
+                {/* Representative Information Row */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Representative"
+                    name="representative"
+                    value={formData.representative}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Representative Type"
+                    name="representativeType"
+                    value={formData.representativeType}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* ID Proof Information Row */}
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth disabled={!isEditing}>
+                    <InputLabel sx={{ color: 'text.secondary' }}>ID Proof Type</InputLabel>
+                    <Select
+                      name="idProof"
+                      value={formData.idProof}
+                      onChange={handleInputChange}
+                      label="ID Proof Type"
+                      sx={{
+                        '& .MuiSelect-select': {
+                          color: 'black',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Select ID Proof</MenuItem>
+                      <MenuItem value="Passport">Passport</MenuItem>
+                      <MenuItem value="Driver License">Driver License</MenuItem>
+                      <MenuItem value="Aadhar Card">Aadhar Card</MenuItem>
+                      <MenuItem value="PAN Card">PAN Card</MenuItem>
+                      <MenuItem value="Voter ID">Voter ID</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="ID Proof Location"
+                    name="idProofLoc"
+                    value={formData.idProofLoc}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* Address Proof Information Row */}
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth disabled={!isEditing}>
+                    <InputLabel sx={{ color: 'text.secondary' }}>Address Proof Type</InputLabel>
+                    <Select
+                      name="addressProof"
+                      value={formData.addressProof}
+                      onChange={handleInputChange}
+                      label="Address Proof Type"
+                      sx={{
+                        '& .MuiSelect-select': {
+                          color: 'black',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.23)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'rgba(0, 0, 0, 0.87)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <MenuItem value="">Select Address Proof</MenuItem>
+                      <MenuItem value="Utility Bill">Utility Bill</MenuItem>
+                      <MenuItem value="Bank Statement">Bank Statement</MenuItem>
+                      <MenuItem value="Rental Agreement">Rental Agreement</MenuItem>
+                      <MenuItem value="Aadhar Card">Aadhar Card</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Address Proof Location"
+                    name="addressProofLoc"
+                    value={formData.addressProofLoc}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+
+                {/* Profile Picture Location */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Profile Picture Location"
+                    name="profilePicLoc"
+                    value={formData.profilePicLoc}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
 
             {isEditing && (
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
+              <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+                <Button
+                  variant="outlined"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  variant="contained"
+                  color="primary"
                   disabled={loading}
                 >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : 'Save Changes'}
-                </button>
-              </div>
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </Box>
             )}
-          </form>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

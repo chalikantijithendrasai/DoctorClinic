@@ -1,6 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Container,
+  Paper,
+  Typography,
+  Box,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Chip,
+  Divider,
+  CircularProgress,
+  Alert,
+  Avatar,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  TextareaAutosize
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Cancel as CancelIcon,
+  Save as SaveIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
 
 const DoctorProfile = () => {
   const { id } = useParams();
@@ -10,30 +43,30 @@ const DoctorProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
 
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const url = `https://globalnewtrading.com:8443/HealthApp/api/getDoctorById?doctorId=${id}`;
+
+      const response = await axios.post(url, {}, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          certificateID: "87CB817F-4F93-42E3-BF86-C260B0A27966",
+        },
+      });
+
+      setProfile(response.data.data);
+      setFormData(response.data.data);
+    } catch (err) {
+      setError(err.message);
+      console.error("Failed to fetch doctor profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const url = `https://globalnewtrading.com:8443/HealthApp/api/getDoctorById?doctorId=${id}`;
-
-        const response = await axios.post(url, {}, {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            certificateID: "87CB817F-4F93-42E3-BF86-C260B0A27966",
-          },
-        });
-
-        setProfile(response.data.data);
-        setFormData(response.data.data);
-      } catch (err) {
-        setError(err.message);
-        console.error("Failed to fetch doctor profile:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
   }, [id]);
 
@@ -74,7 +107,9 @@ const DoctorProfile = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const url = `https://globalnewtrading.com:8443/HealthApp/api/updateDoctor`;
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userPh = userData.userResponse?.mobileno;
+      const url = `https://globalnewtrading.com:8443/HealthApp/api/updateDoctor?primaryPhone=${userPh}`;
 
       const response = await axios.post(url, formData, {
         headers: {
@@ -85,6 +120,7 @@ const DoctorProfile = () => {
       });
 
       setProfile(response.data.data);
+      fetchProfile()
       setIsEditing(false);
       alert('Doctor profile updated successfully!');
     } catch (err) {
@@ -96,285 +132,370 @@ const DoctorProfile = () => {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <CircularProgress />
+    </Box>
   );
   
   if (error) return (
-    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md mx-auto mt-8" role="alert">
-      <strong className="font-bold">Error: </strong>
-      <span className="block sm:inline">{error}</span>
-    </div>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Alert severity="error">
+        <Typography variant="h6">Error</Typography>
+        {error}
+      </Alert>
+    </Container>
   );
   
   if (!profile) return (
-    <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative max-w-md mx-auto mt-8" role="alert">
-      No doctor profile data found
-    </div>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Alert severity="warning">
+        No doctor profile data found
+      </Alert>
+    </Container>
   );
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ overflow: 'hidden' }}>
         {/* Profile Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-6 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">Doctor Profile</h1>
-              <p className="mt-1">{profile.doctorFirstName} {profile.doctorLastName}</p>
-            </div>
-            <button
+        <Box 
+          sx={{ 
+            background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
+            p: 4,
+            color: 'white'
+          }}
+        >
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h4" component="h1" fontWeight="bold">
+                Doctor Profile
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                {profile.doctorFirstName} {profile.doctorLastName}
+              </Typography>
+            </Box>
+            <Button
               onClick={() => setIsEditing(!isEditing)}
-              className={`px-4 py-2 rounded font-medium ${isEditing ? 'bg-white text-blue-600 hover:bg-gray-100' : 'bg-blue-600 text-white hover:bg-blue-700'} transition-colors`}
+              variant="contained"
+              color={isEditing ? 'inherit' : 'primary'}
+              startIcon={isEditing ? <CancelIcon /> : <EditIcon />}
+              sx={{
+                backgroundColor: isEditing ? 'white' : '',
+                color: isEditing ? 'primary.main' : 'white',
+                '&:hover': {
+                  backgroundColor: isEditing ? '#f5f5f5' : '',
+                }
+              }}
             >
-              {isEditing ? 'Cancel Editing' : 'Edit Profile'}
-            </button>
-          </div>
-        </div>
+              {isEditing ? 'Cancel' : 'Edit Profile'}
+            </Button>
+          </Box>
+        </Box>
 
         {/* Profile Content */}
-        <div className="p-6">
+        <Box p={4}>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {/* Personal Information Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Personal Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="doctorFirstName"
-                        value={formData.doctorFirstName || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.doctorFirstName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Middle Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="doctorMiddleName"
-                        value={formData.doctorMiddleName || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.doctorMiddleName || '-'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="doctorLastName"
-                        value={formData.doctorLastName || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.doctorLastName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Qualification
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="doctorQualification"
-                        value={formData.doctorQualification || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.doctorQualification}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.email}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Primary Phone
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="primaryPhone"
-                        value={formData.primaryPhone || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.primaryPhone}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender
-                    </label>
-                    {isEditing ? (
-                      <select
-                        name="gender"
-                        value={formData.gender || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.gender}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Doctor Fee
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="doctorFee"
-                        value={formData.doctorFee || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-gray-900 bg-gray-100 p-2 rounded">{profile.doctorFee}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <Card>
+                <CardHeader 
+                  title="Personal Information" 
+                  titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
+                  sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}
+                />
+                <CardContent>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="First Name"
+                          name="doctorFirstName"
+                          value={formData.doctorFirstName || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            First Name
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.doctorFirstName}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Middle Name"
+                          name="doctorMiddleName"
+                          value={formData.doctorMiddleName || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Middle Name
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.doctorMiddleName || '-'}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Last Name"
+                          name="doctorLastName"
+                          value={formData.doctorLastName || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Last Name
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.doctorLastName}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Qualification"
+                          name="doctorQualification"
+                          value={formData.doctorQualification || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Qualification
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.doctorQualification}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Email"
+                          name="email"
+                          value={formData.email || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Email
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.email}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Primary Phone"
+                          name="primaryPhone"
+                          value={formData.primaryPhone || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Primary Phone
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.primaryPhone}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <FormControl fullWidth>
+                          <InputLabel>Gender</InputLabel>
+                          <Select
+                            label="Gender"
+                            name="gender"
+                            value={formData.gender || ''}
+                            onChange={handleInputChange}
+                          >
+                            <MenuItem value="Male">Male</MenuItem>
+                            <MenuItem value="Female">Female</MenuItem>
+                            <MenuItem value="Other">Other</MenuItem>
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Gender
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.gender}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      {isEditing ? (
+                        <TextField
+                          fullWidth
+                          label="Doctor Fee"
+                          name="doctorFee"
+                          value={formData.doctorFee || ''}
+                          onChange={handleInputChange}
+                          variant="outlined"
+                        />
+                      ) : (
+                        <Box>
+                          <Typography variant="subtitle2" color="textSecondary">
+                            Doctor Fee
+                          </Typography>
+                          <Typography variant="body1">
+                            {profile.doctorFee}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
 
               {/* Languages Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  Languages
-                </h2>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    {formData.languages?.map((language, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={language}
-                          onChange={(e) => handleArrayChange('languages', index, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayItem('languages', index)}
-                          className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addArrayItem('languages')}
-                      className="mt-2 px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                    >
-                      + Add Language
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {profile.languages?.length > 0 ? (
-                      profile.languages.map((language, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                          {language}
-                        </span>
-                      ))
-                    ) : (
-                      <p className="text-gray-500">No languages specified</p>
-                    )}
-                  </div>
-                )}
-              </div>
+              <Card>
+                <CardHeader 
+                  title="Languages" 
+                  titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
+                  sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}
+                />
+                <CardContent>
+                  {isEditing ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {formData.languages?.map((language, index) => (
+                        <Box key={index} display="flex" alignItems="center" gap={2}>
+                          <TextField
+                            fullWidth
+                            value={language}
+                            onChange={(e) => handleArrayChange('languages', index, e.target.value)}
+                            variant="outlined"
+                          />
+                          <IconButton
+                            onClick={() => removeArrayItem('languages', index)}
+                            color="error"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                      <Button
+                        startIcon={<AddIcon />}
+                        onClick={() => addArrayItem('languages')}
+                        variant="outlined"
+                        color="primary"
+                        sx={{ alignSelf: 'flex-start' }}
+                      >
+                        Add Language
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {profile.languages?.length > 0 ? (
+                        profile.languages.map((language, index) => (
+                          <Chip 
+                            key={index} 
+                            label={language} 
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ))
+                      ) : (
+                        <Typography color="textSecondary">
+                          No languages specified
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* About Yourself Card */}
-              <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                  About Yourself
-                </h2>
-                {isEditing ? (
-                  <textarea
-                    name="aboutSelf"
-                    value={formData.aboutSelf || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    rows="4"
-                  />
-                ) : (
-                  <p className="text-gray-700 whitespace-pre-line bg-gray-100 p-3 rounded">
-                    {profile.aboutSelf || 'No information provided'}
-                  </p>
-                )}
-              </div>
-            </div>
+              <Card>
+                <CardHeader 
+                  title="About Yourself" 
+                  titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
+                  sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}
+                />
+                <CardContent>
+                  {isEditing ? (
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      name="aboutSelf"
+                      value={formData.aboutSelf || ''}
+                      onChange={handleInputChange}
+                      variant="outlined"
+                    />
+                  ) : (
+                    <Typography 
+                      variant="body1" 
+                      color="textPrimary"
+                      sx={{ whiteSpace: 'pre-line' }}
+                    >
+                      {profile.aboutSelf || 'No information provided'}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Box>
 
             {isEditing && (
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
+              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                <Button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<CancelIcon />}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  variant="contained"
+                  color="primary"
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : 'Save Changes'}
-                </button>
-              </div>
+                  Save Changes
+                </Button>
+              </Box>
             )}
           </form>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 
