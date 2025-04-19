@@ -1,0 +1,14 @@
+html, body {
+  height: 100%; /* Ensures the body spans the full height */
+  margin: 0; /* Removes default margins */
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Makes the root container span the full height of the viewport */
+}
+
+main {
+  flex: 1; /* Allows the main content to grow and push the footer down */
+}
