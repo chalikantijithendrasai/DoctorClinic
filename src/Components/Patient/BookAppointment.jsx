@@ -1,9 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { format, parse, isSameDay, addDays } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
+import {
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  Button,
+  TextField,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Box,
+  styled,
+  Divider,      // <-- Add this
+  Select        // <-- And this
+} from '@mui/material';
+
+import { CalendarToday, Schedule, Person, Phone, Payment } from '@mui/icons-material';
+
+// Styled component
+const AvailabilityDot = styled('span')(({ theme }) => ({
+  height: 6,
+  width: 6,
+  backgroundColor: theme.palette.success.main,
+  borderRadius: '50%',
+  display: 'inline-block',
+  position: 'absolute',
+  bottom: 4,
+  left: '50%',
+  transform: 'translateX(-50%)',
+}));
 
 const BookAppointment = () => {
   const { id: doctorId } = useParams();
@@ -26,9 +58,8 @@ const BookAppointment = () => {
   };
 
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const userID = userData.userResponse?.patientId;
+  const userID = userData?.userResponse?.patientId;
 
-  // Fetch available dates for the doctor
   useEffect(() => {
     const fetchAvailableDates = async () => {
       try {
@@ -36,15 +67,9 @@ const BookAppointment = () => {
         const response = await axios.post(
           `https://globalnewtrading.com:8443/HealthApp/api/getDoctorSchedules?doctorId=${doctorId}`,
           {},
-          {
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              certificateID: "87CB817F-4F93-42E3-BF86-C260B0A27966",
-            },
-          }
+          { headers }
         );
-        
+
         if (response.data.status === 'success') {
           setAvailableDates(response.data.data.map(item => item.date));
         }
@@ -59,7 +84,6 @@ const BookAppointment = () => {
     fetchAvailableDates();
   }, [doctorId]);
 
-  // Fetch slots when date is selected
   useEffect(() => {
     if (selectedDate) {
       const fetchSlots = async () => {
@@ -68,15 +92,9 @@ const BookAppointment = () => {
           const response = await axios.post(
             `https://globalnewtrading.com:8443/HealthApp/api/getDoctorSlotsbyDate?doctorId=${doctorId}&date=${selectedDate}`,
             {},
-            {
-                headers: {
-                  Accept: "application/json",
-                  "Content-Type": "application/json",
-                  certificateID: "87CB817F-4F93-42E3-BF86-C260B0A27966",
-                },
-              }
+            { headers }
           );
-          
+
           if (response.data.status === 'success') {
             setSlots(response.data.data);
           }
@@ -95,7 +113,6 @@ const BookAppointment = () => {
   const handleCalendarChange = (date) => {
     setCalendarDate(date);
     const formattedDate = format(date, 'dd-MM-yyyy');
-    
     if (availableDates.includes(formattedDate)) {
       setSelectedDate(formattedDate);
       setSelectedSlot(null);
@@ -107,8 +124,6 @@ const BookAppointment = () => {
     setSelectedDate(date);
     setSelectedSlot(null);
     setBookingSuccess(false);
-    
-    // Parse the selected date and update calendar view
     const [day, month, year] = date.split('-');
     setCalendarDate(new Date(`${year}-${month}-${day}`));
   };
@@ -130,48 +145,42 @@ const BookAppointment = () => {
       setError('Please fill all required fields and select a slot');
       return;
     }
-  
+
     try {
       setLoading(true);
       setError(null);
-  
-      // Format time to include AM/PM
+
       const formatTime = (timeStr) => {
-        // If time is already in AM/PM format, return as is
-        if (timeStr.includes('AM') || timeStr.includes('PM')) {
-          return timeStr;
-        }
-        
-        // Convert 24-hour format to 12-hour format with AM/PM
+        if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
         const [hours, minutes] = timeStr.split(':');
         const hourNum = parseInt(hours, 10);
         const period = hourNum >= 12 ? 'PM' : 'AM';
         const hour12 = hourNum % 12 || 12;
         return `${hour12}:${minutes} ${period}`;
       };
-  
+
       const bookingData = {
         doctorId: selectedSlot.doctorId,
-        doctorName: `DR. ${selectedSlot.doctorName.split('DR. ').join('')}`, // Ensure "DR." prefix
+        doctorName: `DR. ${selectedSlot.doctorName.replace(/^DR\.?\s*/i, '')}`,
         date: selectedSlot.date,
         slotId: selectedSlot.slotId,
-        bookedBy: "Admin", // You can change this to "Admin" if needed
+        bookedBy: "Admin",
         patientPhno: patientDetails.patientPhno,
         patientId: userID,
         patientName: patientDetails.patientName,
         transactionDate: format(new Date(), 'dd-MM-yyyy'),
         slotIn: formatTime(selectedSlot.slotIn),
         slotOut: formatTime(selectedSlot.slotOut),
-        paymentMode: patientDetails.paymentMode === 'Debit' ? 'Debit Card' : patientDetails.paymentMode, // Update payment mode format
-        slotType: selectedSlot.slotType === 'Online' ? 'Consultation' : selectedSlot.slotType // Update slotType if needed
+        paymentMode: patientDetails.paymentMode === 'Debit' ? 'Debit Card' : patientDetails.paymentMode,
+        slotType: selectedSlot.slotType === 'Online' ? 'Consultation' : selectedSlot.slotType
       };
-  
+
       const response = await axios.post(
         `https://globalnewtrading.com:8443/HealthApp/api/bookDoctorSlot?doctorId=${selectedSlot.doctorId}`,
         bookingData,
         { headers }
       );
-  
+
       if (response.data.status === 'success') {
         setBookingSuccess(true);
       } else {
@@ -185,216 +194,147 @@ const BookAppointment = () => {
     }
   };
 
-  // Convert available dates to Date objects for calendar highlighting
   const availableDateObjects = availableDates.map(date => {
-    if (!date) return null;
     const [day, month, year] = date.split('-');
     return new Date(`${year}-${month}-${day}`);
-  }).filter(date => date !== null);
+  }).filter(Boolean);
 
-  // Custom day component with proper null checks
   const DayContents = ({ date }) => {
-    if (!date) return <div></div>;
-    
     const isAvailable = availableDateObjects.some(d => isSameDay(d, date));
     return (
-      <div className="relative">
+      <div style={{ position: 'relative' }}>
         {date.getDate()}
-        {isAvailable && <div className="availability-dot"></div>}
+        {isAvailable && <AvailabilityDot />}
       </div>
     );
   };
 
-  // Get min and max dates with null checks
   const getMinMaxDates = () => {
-    if (availableDates.length === 0 || availableDateObjects.length === 0) {
-      return { min: null, max: null };
-    }
-    
-    const minDate = new Date(Math.min(...availableDateObjects.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...availableDateObjects.map(d => d.getTime())));
-    
+    if (!availableDateObjects.length) return { min: null, max: null };
     return {
-      min: minDate,
-      max: maxDate
+      min: new Date(Math.min(...availableDateObjects.map(d => d.getTime()))),
+      max: new Date(Math.max(...availableDateObjects.map(d => d.getTime())))
     };
   };
 
   const { min, max } = getMinMaxDates();
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">Book Appointment</h1>
-    
-      {loading && !selectedDate && <p className="text-blue-500 text-center">Loading available dates...</p>}
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      {bookingSuccess && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center">
-          Appointment booked successfully!
-        </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" align="center" sx={{ fontWeight: 'bold', mb: 4 }}>
+        Book Appointment
+      </Typography>
+
+      {error && (
+        <Paper elevation={0} sx={{ backgroundColor: 'error.light', p: 2, mb: 3 }}>
+          <Typography color="error" align="center">{error}</Typography>
+        </Paper>
       )}
-    
-      <div className="flex flex-col md:flex-row gap-8">
+
+      {bookingSuccess && (
+        <Paper elevation={0} sx={{ backgroundColor: 'success.light', p: 2, mb: 3 }}>
+          <Typography color="success.dark" align="center">
+            Appointment booked successfully!
+          </Typography>
+        </Paper>
+      )}
+
+      <Grid container spacing={4}>
         {/* Calendar Section */}
-        <div className="md:w-1/2">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">Select Date</h2>
-            <DatePicker
-        selected={calendarDate}
-        onChange={handleCalendarChange}
-        minDate={min}
-        maxDate={max}
-        inline
-        filterDate={date => {
-          if (!date) return false;
-          return availableDateObjects.some(d => isSameDay(d, date));
-        }}
-        renderDayContents={DayContents}
-        calendarClassName="border-0"
-        dayClassName={date => {
-          if (!date) return '';
-          return availableDateObjects.some(d => isSameDay(d, date)) 
-            ? 'bg-green-50 hover:bg-green-100' 
-            : 'text-gray-400 cursor-not-allowed';
-        }}
-      />
-            <style>{`
-              .react-datepicker__day--selected, 
-              .react-datepicker__day--keyboard-selected {
-                background-color: #3b82f6;
-                color: white;
-              }
-              .react-datepicker__day--selected:hover {
-                background-color: #2563eb;
-              }
-              .availability-dot {
-                height: 6px;
-                width: 6px;
-                background-color: #10b981;
-                border-radius: 50%;
-                display: inline-block;
-                position: absolute;
-                bottom: 2px;
-                left: 50%;
-                transform: translateX(-50%);
-              }
-            `}</style>
-          </div>
-        </div>
-        
-        {/* Available Dates and Slots Section */}
-        <div className="md:w-1/2">
-          {/* Show available date buttons after loading */}
-          {!loading && availableDates.length > 0 && (
-            <div className="bg-white p-4 rounded-lg shadow mb-6">
-              <h2 className="text-lg font-semibold mb-4">Available Dates</h2>
-              <div className="flex flex-wrap gap-2">
-                {availableDates.map((date) => (
-                  <button
-                    key={date}
-                    onClick={() => handleDateButtonClick(date)}
-                    className={`py-2 px-3 rounded-md text-sm border ${
-                      selectedDate === date 
-                        ? 'bg-blue-500 text-white border-blue-500' 
-                        : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
-                    } transition`}
-                  >
-                    {date}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Show slots when a date is selected */}
-          {selectedDate && (
-            <div className="bg-white p-4 rounded-lg shadow">
-              {loading ? (
-                <p className="text-blue-500 text-center">Loading slots...</p>
-              ) : (
-                <>
-                  <h2 className="text-lg font-semibold mb-4">
-                    Available Slots for {format(parse(selectedDate, 'dd-MM-yyyy', new Date()), 'MMMM dd, yyyy')}
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                    {slots.map((slot) => (
-                      <button
-                        key={slot.slotId}
-                        onClick={() => handleSlotSelect(slot)}
-                        className={`py-2 px-3 rounded-md text-sm font-medium transition ${
-                          selectedSlot?.slotId === slot.slotId
-                            ? 'bg-blue-500 text-white'
-                            : slot.bookingStatus === 'open'
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-red-100 text-red-800 cursor-not-allowed'
-                        }`}
-                        disabled={slot.bookingStatus !== 'open'}
-                      >
-                        {slot.slotIn} - {slot.slotOut}
-                        <div className="text-xs mt-1">{slot.consultFee ? `₹${slot.consultFee}` : 'Free'}</div>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-          
-          {/* Show patient form only when slot is selected */}
-          {selectedSlot && (
-            <div className="bg-gray-50 p-6 rounded-lg mt-6">
-              <h3 className="font-semibold mb-4 text-center">Patient Details</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    name="patientName"
-                    value={patientDetails.patientName}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="patientPhno"
-                    value={patientDetails.patientPhno}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Payment Mode</label>
-                  <select
-                    name="paymentMode"
-                    value={patientDetails.paymentMode}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2"
-                  >
-                    <option value="Cash">Cash</option>
-                    <option value="Online">Online</option>
-                    <option value="Debit">Debit Card</option>
-                    <option value="Credit">Credit Card</option>
-                  </select>
-                </div>
-              </div>
-            
-              <button
-                onClick={handleBookAppointment}
-                className="mt-6 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:bg-blue-300"
-                disabled={loading}
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" mb={2}>
+              <CalendarToday color="primary" sx={{ mr: 1 }} />
+              <Typography variant="h6">Select Date</Typography>
+            </Box>
+
+            {loading && !selectedDate ? (
+              <Box display="flex" justifyContent="center" my={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <DatePicker
+                selected={calendarDate}
+                onChange={handleCalendarChange}
+                minDate={min}
+                maxDate={max}
+                inline
+                filterDate={date =>
+                  availableDateObjects.some(d => isSameDay(d, date))
+                }
+                renderDayContents={(day, date) => <DayContents date={date} />}
+              />
+            )}
+          </Paper>
+        </Grid>
+
+        {/* Appointment Details Section */}
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Select Slot
+            </Typography>
+            <Box mb={2}>
+              {slots.map(slot => (
+                <Button
+                  key={slot.slotId}
+                  variant={selectedSlot?.slotId === slot.slotId ? 'contained' : 'outlined'}
+                  color="primary"
+                  sx={{ m: 1 }}
+                  onClick={() => handleSlotSelect(slot)}
+                >
+                  {slot.slotIn} - {slot.slotOut}
+                </Button>
+              ))}
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <TextField
+              fullWidth
+              name="patientName"
+              label="Patient Name"
+              value={patientDetails.patientName}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              name="patientPhno"
+              label="Phone Number"
+              value={patientDetails.patientPhno}
+              onChange={handleInputChange}
+              margin="normal"
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Payment Mode</InputLabel>
+              <Select
+                name="paymentMode"
+                value={patientDetails.paymentMode}
+                onChange={handleInputChange}
+                label="Payment Mode"
               >
-                {loading ? 'Booking...' : 'Book Appointment'}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                <MenuItem value="Cash">Cash</MenuItem>
+                <MenuItem value="Debit">Debit Card</MenuItem>
+                <MenuItem value="UPI">UPI</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{ mt: 3 }}
+              onClick={handleBookAppointment}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Book Appointment'}
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

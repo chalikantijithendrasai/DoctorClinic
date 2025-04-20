@@ -46,6 +46,9 @@ const Header = () => {
     setIsLoggedIn(authenticated);
   }, []);
 
+  const userData = JSON.parse(localStorage.getItem("userData"));
+const registeredAs = userData?.registeredAs?.toLowerCase()
+
   const handleAdminOpen = () => setAdminOpen(true);
   const handleDoctorOpen = () => setDoctorOpen(true);
   const handleDoctorClose = () => setDoctorOpen(false);
@@ -100,14 +103,36 @@ const Header = () => {
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.setItem("isAuthenticated", "false"); // 👈 update localStorage
-    localStorage.clear()
+    localStorage.clear();
     setAnchorEl(null);
     navigate("/");
   };
 
-  // const handleDashboard = () => {
-  //   navigate("/admin-home");
-  // };
+  const handleDashboard = () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+
+    if (!userData) return;
+
+    const registeredAs = userData.registeredAs?.toLowerCase();
+    const userResponse = userData.userResponse;
+
+    if (registeredAs === "patient") {
+      const patientId = userResponse?.patientId;
+      if (patientId) {
+        navigate(`/Patientdashboard/${patientId}`);
+      }
+    } else if (registeredAs === "doctor") {
+      const doctorId = userResponse?.doctorId;
+      if (doctorId) {
+        navigate(`/doctordashboard/${doctorId}`);
+      }
+    } else if (registeredAs === "admin") {
+      navigate("/admin-home");
+    } else {
+      // fallback in case role is missing or unknown
+      console.warn("Unknown role or user ID not found");
+    }
+  };
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -138,7 +163,7 @@ const Header = () => {
       );
       console.log("res", response);
       const registered = response.data.registeredAs;
-      const userData = response.data
+      const userData = response.data;
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userData", JSON.stringify(userData));
       setIsLoggedIn(true);
@@ -229,16 +254,14 @@ const Header = () => {
     }
   };
 
-  
-
   const handleProfile = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
-  
+
     const isPatient = userData.registeredAs?.toLowerCase() === "patient";
     const userID = isPatient
       ? userData.userResponse?.patientId
       : userData.userResponse?.doctorId;
-  
+
     if (isPatient) {
       navigate(`/profile/patient/${userID}`);
     } else {
@@ -246,22 +269,20 @@ const Header = () => {
     }
   };
 
-  const handleAppointment = async ()=>{
+  const handleAppointment = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
-  
+
     const isPatient = userData.registeredAs?.toLowerCase() === "patient";
     const userID = isPatient
       ? userData.userResponse?.patientId
       : userData.userResponse?.doctorId;
-  
+
     if (isPatient) {
       navigate(`/patientAppointments`);
     } else {
       navigate(`/viewappointment/${userID}`);
     }
   };
-
-  
 
   const startTimer = (seconds) => {
     setTimer(seconds);
@@ -522,9 +543,7 @@ const Header = () => {
           <Box display="flex" alignItems="center">
             {isLoggedIn ? (
               <>
-                <Button color="inherit" 
-                // onClick={handleDashboard}
-                >
+                <Button color="inherit" onClick={handleDashboard}>
                   Dashboard
                 </Button>
                 <Avatar
@@ -666,19 +685,37 @@ const Header = () => {
         </Box>
       </Modal>
 
-      {/* Profile Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
+        {/* Common to both */}
         <MenuItem onClick={handleProfile}>My Profile</MenuItem>
-        <MenuItem onClick={handleLogout}>Update Consultation Fee</MenuItem>
         <MenuItem onClick={handleAppointment}>Appointments</MenuItem>
-        <MenuItem onClick={handleLogout}>Add Dependents</MenuItem>
-        <MenuItem onClick={handleLogout}>Pharmacy Orders</MenuItem>
-        <MenuItem onClick={handleLogout}>Diagnostics Orders</MenuItem>
-        <MenuItem onClick={handleLogout}>My Revenue</MenuItem>
+
+        {/* For Patient */}
+        {registeredAs === "patient" && (
+          <>
+            <MenuItem onClick={handleLogout}>Add Dependents</MenuItem>
+            <MenuItem onClick={handleLogout}>Pharmacy Orders</MenuItem>
+            <MenuItem onClick={handleLogout}>
+              Diagnostics Orders
+            </MenuItem>
+          </>
+        )}
+
+        {/* For Doctor */}
+        {registeredAs === "doctor" && (
+          <>
+            <MenuItem onClick={handleLogout}>
+              Update Consultation Fee
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>My Revenue</MenuItem>
+          </>
+        )}
+
+        {/* Common to both */}
         <MenuItem onClick={handleLogout}>Update Password</MenuItem>
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
         <MenuItem onClick={handleLogout}>Contact Us</MenuItem>
